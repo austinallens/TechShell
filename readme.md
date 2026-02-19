@@ -32,6 +32,7 @@ gcc techshell.c -o techshell
 
 ## Future Plans
 
+- Simple Viewing: Showing '~' for directory name instead of full path
 - Pipe Support: Using '|' within this terminal
 - Up History: Clicking 'up' and 'down' on the keyboard to view old commands
 - Tab Autocompletion: The ability to use 'tab' to fill in the rest of a command
