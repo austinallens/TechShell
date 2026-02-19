@@ -30,6 +30,25 @@ gcc techshell.c -o techshell
 ./techshell
 ```
 
+### How to install (in Debug Mode)
+1) Run this command in the terminal
+```bash
+git clone https://github.com/austinallens/TechShell.git
+```
+
+2) Navigate to 'TechShell' directory.
+
+3) Compile techshell.c with DEBUG flag enabled
+```bash
+# Example:
+gcc -D DEBUG techshell.c -o techshell
+```
+
+4) Run techshell
+```bash
+./techshell
+```
+
 ## Future Plans
 
 - Simple Viewing: Showing '~' for directory name instead of full path

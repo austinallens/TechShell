@@ -1,5 +1,6 @@
 // Name: Austin Allen
 // Description: Main File for the Techshell project.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,11 +28,10 @@ void executeCommand(struct ShellCommand command);
 
 int main() // MAIN
 {
-    // If anything but 0 will initialize all the code I used
-    // for testing.
-    int logMode = 0;
-
+    // Used to store character array from getInput()
     char* input;
+    
+    // Used to store ShellCommand struct from parseInput()
     struct ShellCommand command;
 
     // Repeatedly Prompt the User for Input
@@ -41,36 +41,59 @@ int main() // MAIN
         displayPrompt();
 
         // Get the User's Input
-        input = getInput(); // Don't forget to use 'free(input);' once done,
-                            // from inside the loop. Finish 'parseInput()' and
-                            // 'executeCommand()' first to know exactly where to place.
+        input = getInput();
 
         // Parse the Command Line
         command = parseInput(input);
 
-        if (logMode != 0) {
+        // Debug
+        #ifdef DEBUG
             for (int i = 0; command.args[i] != NULL; i++) {
                 printf("args[%d]: '%s'\n", i, command.args[i]);
             }
             printf("Output File: '%s'\n", command.outputFile);
             printf("Input File: '%s'\n", command.inputFile);
-        }
+        #endif
 
         // Execute the Command
         executeCommand(command);
+
+        // Frees input from memory
+        // (since strdup doesn't automatically)
+        free(input);
     }
 
-    exit(0);
+    // Exits with error (Shouldn't need to run)
+    exit(1);
 }
 
 void displayPrompt() {
     /*
     A function that causes the prompt to display in the terminal
     */
+
+    // Gets 'home' directory
+    // ie. '/home/USER'
+    char* home;
+    home = getenv("HOME");
+
+    // Debug
+    #ifdef DEBUG
+    printf("Home path: %s\n", home);
+    #endif
+
+    // Gets current working directory
+    // ie. '/home/USER/Desktop'
     char cwd[PATH_MAX];
     getcwd(cwd, sizeof(cwd));
 
-    printf("%s$ ", cwd);
+    /* Prints:
+          ~: Represents 'home' directory
+         %s: Current working directory moved forward the
+             length of 'home'
+          $: So you know its done ig
+    */
+    printf("~%s$ ", cwd+strlen(home));
 }
 
 char* getInput() {
@@ -79,7 +102,11 @@ char* getInput() {
     It may return return the input to the calling statement or store
     it at some memory location using a pointer.
     */
+
+    // Character Array to store user input (up to PATH_MAX in size)
     char input[PATH_MAX];
+
+    // Gets user input
     fgets(input, sizeof(input), stdin);
     char* output = strdup(input);
     return output;
@@ -155,7 +182,7 @@ void executeCommand(struct ShellCommand command) {
         if(chdir(command.args[1]) != 0) {
             // Checks if 'chdir' fails (ie. doesn't return 0)
             // and returns perror
-            printf("Error %d: (%s)\n", errno, strerror(errno));
+            printf("Error %d (%s)\n", errno, strerror(errno));
         }
     } else if (strcmp(command.args[0], "exit") == 0) {
         // Checks if command is 'exit' and exits
