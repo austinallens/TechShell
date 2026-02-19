@@ -1,0 +1,4 @@
+# Ignore C compiler output files
+a.out
+*.out
+techshell
