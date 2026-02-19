@@ -99,15 +99,18 @@ void displayPrompt() {
 char* getInput() {
     /*
     A function that takes input from the user.
-    It may return return the input to the calling statement or store
-    it at some memory location using a pointer.
     */
 
     // Character Array to store user input (up to PATH_MAX in size)
     char input[PATH_MAX];
 
-    // Gets user input
+    // Gets user input from keyboard (stdin) and puts it in input up to
+    // the size of input (with a \n)
     fgets(input, sizeof(input), stdin);
+
+    // Creates a copy of 'input' called 'output' to return.
+    // This is because 'input' would get cleared from mem.
+    // once the function finishes. Now 'output' persists.
     char* output = strdup(input);
     return output;
 }
@@ -115,43 +118,48 @@ char* getInput() {
 struct ShellCommand parseInput(char* input) {
     /*
     A function that parses through the user input.
-    Consider having this function return a struct that stores vital information about the parsed instruction such as:
-        - The command itself
-        - The arguments that come after the command
-            Hint: When formatting your data, look into execvp and how it takes in args.
-        - Information about if a redirect was detected such as >, <, or |
-        - Information about whether or not a new file needs to be created and what that filename may be.
-
-    Some helpful functions when doing this come from string.h and stdlib.h, such as strtok, strcmp, strcpy, calloc, malloc,
-    realloc, free, and more.
-
-    Be sure to consider/test for situations when a backslash is used to escape the space char and when quotes are used to group together
-    various tokens.
+    See 'tokenizer.c' assignment for another usage of this.
     */
 
+    // Removes '\n' from input (added in strdup)
     input[strcspn(input, "\n")] = 0;
 
+    // tokenAmount is to iterate through array
     int tokenAmount = 0;
     char *token = strtok(input, " ");
 
+    // Creates ShellCommand struct with
+    // initial values.
     struct ShellCommand cmd;
     cmd.inputFile = NULL;
     cmd.outputFile = NULL;
 
+    // As long as token doesn't equal 'NULL'
+    // which is the end of token
     while (token != NULL) {
         if (strcmp(token, ">") == 0) {
+            // If the token is > then,
+            // adds what comes after to 'outputFile'
             token = strtok(NULL, " ");
             cmd.outputFile = token;
         } else if (strcmp(token, "<") == 0) {
+            // If the token is < then,
+            // adds what comes after to 'inputFile'
             token = strtok(NULL, " ");
             cmd.inputFile = token;
         } else {
+            // Otherwise, adds token to args array
+            // and adds one to 'tokenAmount'
             cmd.args[tokenAmount] = token;
             tokenAmount++;
         }
+        // Breaks if not outside of the if elses.
+        // So that output/inputFile doesn't get added
+        // as a token
         token = strtok(NULL, " ");
     }
 
+    // 'execvp' requires a 'NULL' at the end
     cmd.args[tokenAmount] = NULL;
 
     return cmd;
@@ -160,28 +168,13 @@ struct ShellCommand parseInput(char* input) {
 void executeCommand(struct ShellCommand command) {
     /*
     A function that executes the command.
-    This function might take in a struct that represents the shell command.
-
-    Be sure to consider each of the following:
-        1. The execvp() function.
-            This can execute commands that already exist, that is, you don't need to recreate
-            the functionality of the commands on your computer, just the shell.
-            Keep in mind that execvp takes over the current process.
-        2. The fork() function.
-            This can create a process for execvp to take over.
-        3. 'cd' is not a command like 'ls' and 'mkdir'.
-            'cd' is a tool provided by the shell,
-            so you WILL need to recreate the functionality of cd.
-        4. Be sure to handle standard output redirect and stadard input redirects here.
-            That is, the symbols: > and <.
-            Pipe isn't required, but could be a nice addition.
     */
 
     if (strcmp(command.args[0], "cd") == 0) {
         // Checks if command is 'cd'
         if(chdir(command.args[1]) != 0) {
-            // Checks if 'chdir' fails (ie. doesn't return 0)
-            // and returns perror
+            // Runs 'chdir' and checks if it fails 
+            // (ie. doesn't return 0) and returns perror
             printf("Error %d (%s)\n", errno, strerror(errno));
         }
     } else if (strcmp(command.args[0], "exit") == 0) {
@@ -221,6 +214,7 @@ void executeCommand(struct ShellCommand command) {
             exit(1);
         } else {
             // Parent Process:
+            // waits until Child is brutally slaughtered
             wait(NULL);
         }
     }
